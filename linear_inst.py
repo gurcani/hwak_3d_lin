@@ -38,13 +38,13 @@ def init_linmats(pars,kx,ky,kz,ksqr):
     return lm
 
 def lincompfreq(lm):
-    lam,v=np.linalg.eig(lm.T)
-    ia=np.argsort(lam.real.T,axis=0)
-    om=1j*np.take_along_axis(lam.T, np.flip(ia,axis=0), axis=0)
+    w,v=np.linalg.eig(lm.T)
+    ia=np.argsort(w.real,axis=-1)
+    lam=np.take_along_axis(w, np.flip(ia,axis=-1), axis=-1).T
     vi=np.zeros_like(v.T)
-    vi[0,]=np.take_along_axis(v[:,:,:,0,:].T, np.flip(ia,axis=0), axis=0)
-    vi[1,]=np.take_along_axis(v[:,:,:,1,:].T, np.flip(ia,axis=0), axis=0)
-    return om #,vi
+    vi[0,]=np.take_along_axis(v[:,:,:,0,:], np.flip(ia,axis=-1), axis=-1).T
+    vi[1,]=np.take_along_axis(v[:,:,:,1,:], np.flip(ia,axis=-1), axis=-1).T
+    return lam,vi #,vi
 
 Nx,Ny,Nz=256,256,256
 Lx,Ly,Lz=32*np.pi,32*np.pi,32*np.pi
@@ -63,7 +63,8 @@ nu=pars['nu']
 
 #kx,ky,kz=np.fft.fftshift(kx,axes=(0,1)),np.fft.fftshift(ky,axes=(0,1)),np.fft.fftshift(kz,axes=(0,1))
 lm=init_linmats(pars,kx,ky,kz,ksqr)
-om=lincompfreq(lm)
+lam,vi=lincompfreq(lm)
+om=1j*lam
 
 plt.figure()
 slz=slice(None,None,int(Nz/16))
